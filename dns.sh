@@ -1,7 +1,12 @@
 #!/bin/bash
 
+PATH=:home/topiko/.local/bin:/usr/local/bin:/usr/bin:/bin
+
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # www.porkbun.com/account
-source keys.sh
+source "$SCRIPT_DIR/keys.sh"
+
 
 # === Configuration ===
 SUBDOMAIN=$1                         # Subdomain to update
@@ -29,6 +34,7 @@ FULLNAME="$SUBDOMAIN.$DOMAIN"
 RECORD_ID=$(echo "$RECORDS_JSON" | jq -r ".records[] | select(.type==\"$TYPE\" and .name==\"$FULLNAME\") | .id")
 
 if [ -z "$RECORD_ID" ]; then
+	echo "$RECORDS_JSON" | jq
 	echo "Error: Could not find $TYPE record for $SUBDOMAIN.$DOMAIN"
 	return
 fi
@@ -45,6 +51,6 @@ UPDATE_JSON=$(curl -s -X POST "$API/json/v3/dns/edit/$DOMAIN/$RECORD_ID" \
   \"ttl\": $TTL
 }")
 
-echo "$TYPE record updated for $FULLNAME -> $UPDATE_JSON" > report_${SUBDOMAIN}.log
+echo "$TYPE record updated for $FULLNAME -> $UPDATE_JSON" > $SCRIPT_DIR/report_${SUBDOMAIN}.log
 
 
